@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project name="orange" default="jar" basedir=".">
+	 
+	<property file="build.properties"/><!--编译属性文件，跟具体项目相关-->
+	<property name="jar-name" value="${jar-name}" /><!--jar文件名-->
+	<property name="project-name" value="${project-name}"/><!--项目名称-->
+	<property name="compile" value="compile"/><!--编译根目录-->
+	<property name="lib" value="lib"/><!--编译依赖库-->
+	<property name="src" value="src"/><!--源代码-->
+	<property name="compile.classes" value="${compile}/classes" /><!--编译源码目录-->
+	<property name="jar.dir" value="F:\automatic\PUBLISH\mainserver\lib"/><!--jar生成位置-->
+	
+	<!--生成jar MANIFEST.MF 中lib字段-->
+	<pathconvert property="libs.project" pathsep=" ">
+		<mapper>
+			<chainedmapper>
+				<!-- remove absolute path -->
+				<flattenmapper />
+				<!-- add lib/ prefix -->
+				<globmapper from="*" to="lib/*" />
+			</chainedmapper>
+		</mapper>
+		<path>
+			<!-- lib.home contains all jar files, in several subdirectories -->
+			<fileset dir="${lib}">
+				<include name="**/*.jar" />
+			</fileset>
+		</path>
+	</pathconvert>
+	
+	<!--依赖jar包-->
+	<path id="lib-classpath">
+		<fileset dir="${lib}">
+			<include name="**/*.jar" />
+		</fileset>
+	</path>
+	 
+	 <!--准备工作：清理-->
+	<target name="clean">
+		<echo message="清理旧文件"/>
+		<delete dir="${compile}" />
+	</target>
+	
+	 <!--准备工作：建目录-->
+	<target name="prepare" depends="clean">
+		<echo message="开始SKILL包的构建工作,生成目录在${jar.dir}"/>
+		<mkdir dir="${compile.classes}" />
+		<mkdir dir="${jar.dir}" />
+	</target>
+	 
+	<!--编译src-->
+	<target name="compile" depends="prepare">
+		<echo message="进行编译"/>
+		<javac
+			srcdir="${src}"
+			destdir="${compile.classes}"
+			failonerror="true"
+			includeantruntime="on"
+			debug="true" 
+			target="1.7" >
+			<compilerarg line="-encoding UTF-8 "/> 
+			<classpath refid="lib-classpath"/> 
+		</javac>
+	</target>
+	
+	<!--打jar包-->
+	<target name="jar" depends="compile">
+		<echo message="进行打包"/>
+		<jar destfile="${jar.dir}/${jar-name}.jar" basedir="${compile.classes}">
+			<manifest>
+				<attribute name="Class-Path" value="${libs.project}"/> 
+			</manifest>
+		</jar>
+	</target>
+</project> 
